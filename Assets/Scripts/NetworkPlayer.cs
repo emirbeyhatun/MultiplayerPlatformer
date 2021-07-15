@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace PlatformerGame
@@ -56,7 +57,11 @@ namespace PlatformerGame
             {
                 inventory = new Inventory(ref InventoryManager.instance.itemData, ref UiManager.instance.itemButtons, this, animator, NetworkManager.instance.inventoryEventData);
 
-                UiManager.instance.useItemButton.onClick.AddListener(delegate { inventory.UseItem(0); });
+                EventTrigger trigger = UiManager.instance.useItemButton.gameObject.AddComponent<EventTrigger>();
+                var pointerDown = new EventTrigger.Entry();
+                pointerDown.eventID = EventTriggerType.PointerDown;
+                pointerDown.callback.AddListener(delegate { inventory.UseItem(0); });
+                trigger.triggers.Add(pointerDown);
             }
             else
             {
@@ -215,14 +220,12 @@ namespace PlatformerGame
 
         public  ItemBase CreateNewInventoryItem(ItemBase itemBase, int inventoryIndex)
         {
-            ItemBase clone = Instantiate(itemBase);
-            if((RifleItem)clone)
+            ItemBase clone = null;
+            if((RifleItem)itemBase)
             {
+                clone = Instantiate(((RifleItem)itemBase));
+                clone.data = Instantiate(clone.data);
                 ((RifleItem)clone).Initialize(inventoryIndex, photonView.Owner ,bulletSpawnSlot, targetObject, weaponSlot, animator, EnableAimingToTarget);
-            }
-            else
-            {
-                clone.Initialize(inventoryIndex, photonView.Owner);
             }
 
             return clone;
@@ -236,11 +239,11 @@ namespace PlatformerGame
             }
         }
 
-        public void SwitchTo(int itemID)
+        public void SwitchTo(int inventoryIndex)
         {
             if (inventory != null)
             {
-                inventory.SwitchTo(itemID);
+                inventory.SwitchTo(inventoryIndex);
             }
         }
 

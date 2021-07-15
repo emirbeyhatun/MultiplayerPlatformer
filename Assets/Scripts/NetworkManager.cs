@@ -224,17 +224,17 @@ namespace PlatformerGame
             }
         }
 
-        public void ReplicateItemSwitch(int itemID)
+        public void ReplicateItemSwitch(int inventoryIndex)
         {
-            photonView.RPC("RPC_SwitchItem", RpcTarget.Others, itemID);
+            photonView.RPC("RPC_SwitchItem", RpcTarget.Others, inventoryIndex);
         }
 
         [PunRPC]
-        private void RPC_SwitchItem(int itemID)
+        private void RPC_SwitchItem(int inventoryIndex)
         {
             if (remotePlayerInstance)
             {
-                remotePlayerInstance.SwitchTo(itemID);
+                remotePlayerInstance.SwitchTo(inventoryIndex);
             }
         }
 

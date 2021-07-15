@@ -15,6 +15,7 @@ namespace PlatformerGame
     public class Inventory
     {
         ItemBase currentItem;
+        ItemBase currentItemWithAnimation;
         const int InventoryLimit = 3;
         int inventoryCount = 0;
         List<ItemBase> itemData;
@@ -63,7 +64,7 @@ namespace PlatformerGame
             if (newItem && emptyIndex >= 0)
             {
                 ItemBase clone = player.CreateNewInventoryItem(newItem, emptyIndex);
-
+                Debug.Log(clone.GetInstanceID());
                 items[emptyIndex] = clone;
                 inventoryCount++;
 
@@ -74,7 +75,7 @@ namespace PlatformerGame
 
                     if (emptyButtonIndex >= 0)
                     {
-                        itemButtons[emptyButtonIndex].PrepareButton(clone.data);
+                        itemButtons[emptyButtonIndex].PrepareButton(clone.data, emptyButtonIndex);
                     }
                 }
                 return true;
@@ -100,7 +101,7 @@ namespace PlatformerGame
         {
             for (int i = 0; i < itemButtons.Count; i++)
             {
-                if (itemButtons[i].itemID == -1)
+                if (itemButtons[i].inventoryIndex == -1)
                 {
                     return i;
                 }
@@ -122,29 +123,26 @@ namespace PlatformerGame
             return null;
         }
 
-        private ItemBase GetItem(int itemID)
+        private ItemBase GetItem(int inventoryIndex)
         {
-            for (int i = 0; i < items.Length; i++)
+            if(items[inventoryIndex] != null)
             {
-                if (items[i].data.itemID == itemID)
-                {
-                    return items[i];
-                }
+                return items[inventoryIndex];
             }
 
             return null;
         }
-        public void SwitchTo(int itemID)
+        public void SwitchTo(int inventoryID)
         {
-            ItemBase selectedItem = GetItem(itemID);
+            if (currentItemWithAnimation != null || inventoryID < 0 || inventoryID >= items.Length) return;
+
+            ItemBase selectedItem = GetItem(inventoryID);
             if (selectedItem && selectedItem != currentItem)
             {
                 if (isPlayerLocal && eventdata != null && eventdata.replicateItemUsage != null)
                 {
-                    eventdata.replicateItemSwitch.Invoke(itemID);
+                    eventdata.replicateItemSwitch.Invoke(inventoryID);
                 }
-
-                player.EnableAimingToTarget(false);
 
                 if (currentItem)
                     currentItem.SwitchFromItem();
@@ -156,6 +154,8 @@ namespace PlatformerGame
 
 
                 UpdateButtonColors();
+
+                animator.ResetTrigger("IdleUpper");
             }
         }
 
@@ -163,27 +163,70 @@ namespace PlatformerGame
         {
             if (isPlayerLocal == false) return;
 
-            if (currentItem)
+            for (int i = 0; i < itemButtons.Count; i++)
             {
-                for (int i = 0; i < itemButtons.Count; i++)
+                if (currentItem && itemButtons[i].inventoryIndex == currentItem.GetInventoryIndex())
                 {
-                    if (itemButtons[i].itemID == currentItem.data.itemID)
-                    {
-                        itemButtons[i].SetColor(true);
-                    }
-                    else
-                    {
-                        itemButtons[i].SetColor(false);
-                    }
+                    itemButtons[i].SetColor(true);
+                }
+                else
+                {
+                    itemButtons[i].SetColor(false);
                 }
             }
         }
 
+        private void UpdateButtonUsages()
+        {
+            if (isPlayerLocal == false) return;
+
+
+            for (int j = 0; j < items.Length; j++)
+            {
+                if (items[j])
+                {
+                    for (int i = 0; i < itemButtons.Count; i++)
+                    {
+                        if (itemButtons[i].inventoryIndex == items[j].GetInventoryIndex())
+                        {
+                            itemButtons[i].SetUsageAmount(items[j].data.totalUsage);
+                            break;
+                        }
+                        
+                    }
+                }
+            }
+            
+        }
+
+        private void ResetButtonByIndex(int Index)
+        {
+            if (isPlayerLocal == false) return;
+
+
+            for (int i = 0; i < itemButtons.Count; i++)
+            {
+                if (itemButtons[i].inventoryIndex == Index)
+                {
+                    itemButtons[i].ResetButton();
+                    break;
+                }
+            }
+        }
         public void UseItem(float lag)
         {
             if (currentItem)
             {
-                currentItem.UseItem(lag);
+                if(currentItem.data.totalUsage > 0 && currentItemWithAnimation == null)
+                {
+                    currentItemWithAnimation = currentItem.UseItem(lag);
+                    UpdateButtonUsages();
+                }
+
+                if (currentItem.IsReadyToBeRemoved())
+                {
+                    RemoveCurrentItem();
+                }
 
                 if (isPlayerLocal && eventdata != null && eventdata.replicateItemUsage != null)
                 {
@@ -192,18 +235,36 @@ namespace PlatformerGame
             }
         }
 
-        void RemoveItem(ItemBase item)
+        void RemoveCurrentItem()
         {
+            if (currentItem == null) return;
+
+            items[currentItem.GetInventoryIndex()] = null;
+            currentItem.RemoveItem();
+
+            animator.SetTrigger("IdleUpper");
+
+            UpdateButtonColors();
+            UpdateButtonUsages();
+            ResetButtonByIndex(currentItem.GetInventoryIndex());
+            currentItem = null;
 
 
         }
 
         public void TriggerAnimationEvent()
         {
-            if (currentItem)
+            if (currentItemWithAnimation)
             {
-                currentItem.AnimationEvent();
+                currentItemWithAnimation.AnimationEvent();
+                if (currentItemWithAnimation.IsReadyToBeRemoved())
+                {
+                    RemoveCurrentItem();
+                }
+
+                currentItemWithAnimation = null;
             }
+
         }
     }
 }

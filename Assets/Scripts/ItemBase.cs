@@ -17,6 +17,7 @@ namespace PlatformerGame
         protected Player owner;
         protected int inventoryIndex;
         protected event Func<bool, bool> OnSwitchTo;
+        protected bool readyToBeRemoved = false;
         public  void Initialize(int inventoryIndex, Player owner, Func<bool, bool> OnSwitchTo = null)
         {
             this.inventoryIndex = inventoryIndex;
@@ -41,9 +42,21 @@ namespace PlatformerGame
         {
             return data.cooldown;
         }
-        public abstract void UseItem(float lag);
+
+        public int GetInventoryIndex()
+        {
+            return inventoryIndex;
+        }
+
+        public bool IsReadyToBeRemoved()
+        {
+            return readyToBeRemoved;
+        }
+        public abstract ItemBase UseItem(float lag);
         public abstract void AnimationEvent();
         public abstract void SwitchToItem();
         public abstract void SwitchFromItem();
+        public abstract void RemoveItem();
+       
     }
 }

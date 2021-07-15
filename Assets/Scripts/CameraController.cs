@@ -6,9 +6,8 @@ namespace PlatformerGame
 {
     public class CameraController : MonoBehaviour
     {
-        Transform target;
-
-        Vector3 distance;
+        private Transform target;
+        [SerializeField]private Vector3 distance;
         private void LateUpdate()
         {
             if (target)
@@ -21,7 +20,7 @@ namespace PlatformerGame
         {
             this.target = target;
 
-            distance = transform.position - target.position;
+           // distance = transform.position - target.position;
         }
     }
 }

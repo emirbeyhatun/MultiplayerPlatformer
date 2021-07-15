@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RifleData
   m_EditorClassIdentifier: 
   itemID: 1
-  totalUsage: 5
+  totalUsage: 3
   value: 1
   cooldown: 0
   itemName: Rifle

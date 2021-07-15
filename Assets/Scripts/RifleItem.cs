@@ -33,10 +33,13 @@ namespace PlatformerGame
 
         public override void SwitchFromItem()
         {
+            CallOnSwitchEvent(false);
             if (modelInstance)
             {
                 modelInstance.gameObject.SetActive(false);
             }
+
+            animator.ResetTrigger(data.animationKey);
         }
 
         public override void SwitchToItem()
@@ -61,10 +64,19 @@ namespace PlatformerGame
 
         }
 
-        public override void UseItem(float lag)
+        public override ItemBase UseItem(float lag)
         {
-            latestLag = lag;
-            animator.SetTrigger("UseItem");
+            //if item is dependent to animation it returns itself
+            if(data.totalUsage > 0)
+            {
+                latestLag = lag;
+                animator.SetTrigger("UseItem");
+                data.totalUsage--;
+
+                return this;
+            }
+
+            return null;
         }
 
 
@@ -79,7 +91,21 @@ namespace PlatformerGame
                     bl.Init(owner, (targetTransform.position - bulletSpawnSlot.position).normalized, data.value,latestLag);
                 }
             }
+
+            if (data.totalUsage <= 0)
+            {
+                readyToBeRemoved = true;
+            }
         }
 
+        public override void RemoveItem()
+        {
+            if (modelInstance)
+            {
+                Destroy(modelInstance);
+            }
+            CallOnSwitchEvent(false);
+            animator.ResetTrigger("UseItem");
+        }
     }
 }

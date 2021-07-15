@@ -11,9 +11,11 @@ namespace PlatformerGame
         [HideInInspector] public Button button;
         public Text nameText;
         public Text amountText;
+        public int usageAmount;
         const string emptyText = "Empty";
         const string zeroText = "0";
         public int itemID;
+        public int inventoryIndex;
 
         public delegate void onButtonClickedWithParameter(int Id);
         public onButtonClickedWithParameter onClicked;
@@ -21,31 +23,37 @@ namespace PlatformerGame
         void Awake()
         {
             itemID = -1;
+            inventoryIndex = -1;
             button = GetComponent<Button>();
             button.interactable = false;
 
             button.onClick.AddListener(OnButtonClicked);
         }
 
-        internal void PrepareButton(ItemData data)
+        internal void PrepareButton(ItemData data, int itemIndex)
         {
             nameText.text = data.name;
-            amountText.text = data.totalUsage.ToString();
+            SetUsageAmount(data.totalUsage);
             itemID = data.itemID;
             button.interactable = true;
+            inventoryIndex = itemIndex;
         }
 
         public void ResetButton()
         {
+
             nameText.text = emptyText;
             amountText.text = zeroText;
+            usageAmount = 0;
             itemID = -1;
+            inventoryIndex = -1;
             button.interactable = false;
+            SetColor(false);
         }
 
         void OnButtonClicked()
         {
-            onClicked?.Invoke(itemID);
+            onClicked?.Invoke(inventoryIndex);
         }
 
         internal void SetColor(bool isSelected)
@@ -58,6 +66,14 @@ namespace PlatformerGame
             {
                 button.GetComponent<Image>().color = Color.white;
             }
+        }
+
+        internal void SetUsageAmount(int totalUsage)
+        {
+            if (totalUsage == usageAmount) return;
+
+            amountText.text = totalUsage.ToString();
+            usageAmount = totalUsage;
         }
     }
 }
