@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c58700657b49848b78ae22fc27103e, type: 3}
+  m_Name: RifleData
+  m_EditorClassIdentifier: 
+  itemID: 1
+  totalUsage: 5
+  value: 1
+  cooldown: 0
+  itemName: Rifle
+  animationKey: Rifle
+  model: {fileID: 919132149155446097, guid: af09773d0d65f1b429bceb063f9f7b47, type: 3}
+  projectile: {fileID: 8109252201672949047, guid: 7d6349d6242619c4b8b39d942ce7babd, type: 3}
+  localRotation: {x: -0.097128995, y: 0.09153279, z: -0.98991305, w: -0.047538664}
+  localPosition: {x: 0.203, y: -0.049, z: 0.054}
+  localBulletSpawnPosition: {x: 0, y: 0, z: 0}
