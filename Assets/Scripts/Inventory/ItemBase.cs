@@ -16,9 +16,9 @@ namespace PlatformerGame
         public ItemData data;
         protected Player owner;
         protected int inventoryIndex;
-        protected event Func<bool, bool> OnSwitchTo;
+        protected event Action<bool> OnSwitchTo;
         protected bool readyToBeRemoved = false;
-        public  void Initialize(int inventoryIndex, Player owner, Func<bool, bool> OnSwitchTo = null)
+        public  void Initialize(int inventoryIndex, Player owner, Action<bool> OnSwitchTo = null)
         {
             this.inventoryIndex = inventoryIndex;
             this.owner = owner;
@@ -27,7 +27,6 @@ namespace PlatformerGame
             {
                 this.OnSwitchTo = OnSwitchTo;
             }
-            Debug.Log("Added Weapon");
         }
 
         protected void CallOnSwitchEvent(bool param)

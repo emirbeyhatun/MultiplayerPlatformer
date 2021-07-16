@@ -7,6 +7,12 @@ namespace PlatformerGame
     [CreateAssetMenu(fileName = "ItemData", menuName = "ScriptableObjects/Itemdata", order = 1)]
     public class ItemData : ScriptableObject
     {
+        public enum ItemType
+        {
+            Rifle, DoubleJump
+        }
+
+        public ItemType itemType;
         public int itemID;
         public int totalUsage;
         public float value;

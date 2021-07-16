@@ -14,42 +14,44 @@ namespace PlatformerGame
     public class NetworkPlayer : MonoBehaviourPun, IPunObservable
     {
         public const float MovementRaycastDownLength = 0.5f;
+        public const float FallRaycastDownLength = 0.1f;
+
+        private Inventory inventory;
         private PlayerStat stats;
         private Animator animator;
         public Rigidbody Rb { get; private set; }
 
+        [SerializeField] private PlayerIndicator indicator;
         [SerializeField] private Transform targetObject;
         [SerializeField] private Transform aimTransform;
         [SerializeField] private Transform weaponSlot;
         [SerializeField] private Transform bulletSpawnSlot;
         public Transform spine;
-
         public LayerMask groundLayer;
-        public Canvas localPlayerIndicator;
 
-        public RunState runState = new RunState();
-        public JumpState jumpState = new JumpState();
-        public FallState fallState = new FallState();
-        private IState currentMovementState = null;
+        private SharedStateData stateData = new SharedStateData();
+        public RunState runState;
+        public JumpState jumpState;
+        public FallState fallState;
+        private StateBase currentMovementState = null;
+
 
         [HideInInspector]public Quaternion spineNewRotation;
-
         private Vector3 networkPosition;
         private Quaternion networkRotation;
         private bool enableAiming = false;
-
-        private Inventory inventory;
 
 
         public void Awake()
         {
             Rb = GetComponent<Rigidbody>();
             animator = GetComponent<Animator>();
-            if (photonView.IsMine == false)
-            {
-                localPlayerIndicator.gameObject.SetActive(false);
-            }
-        }
+            
+
+            runState = new RunState(stateData);
+            jumpState = new JumpState(stateData);
+            fallState = new FallState(stateData);
+    }
 
         private void Start()
         {
@@ -62,6 +64,12 @@ namespace PlatformerGame
                 pointerDown.eventID = EventTriggerType.PointerDown;
                 pointerDown.callback.AddListener(delegate { inventory.UseItem(0); });
                 trigger.triggers.Add(pointerDown);
+
+                pointerDown = new EventTrigger.Entry();
+                trigger = UiManager.instance.jumpButton.gameObject.AddComponent<EventTrigger>();
+                pointerDown.eventID = EventTriggerType.PointerDown;
+                pointerDown.callback.AddListener(delegate { Jump(); });
+                trigger.triggers.Add(pointerDown);
             }
             else
             {
@@ -72,17 +80,20 @@ namespace PlatformerGame
         public void SetStats(PlayerStat NewStats)
         {
             stats = NewStats;
+
+            if (indicator)
+            {
+                indicator.SetPercentage(stats.Speed);
+            }
         }
 
-        public void StartRunning(/*double serverTimeStamp*/)
+        public void StartRunning()
         {
             if (Rb != null && stats != null)
             {
                 currentMovementState = runState;
+                currentMovementState.EnterState(animator, this, stats);
             }
-
-            //float delay = (float)(PhotonNetwork.GetPing() / 2 - remotePing / 2);
-            //transform.position += stats.SpeedVector * (float)(PhotonNetwork.Time - serverTimeStamp);
         }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -103,8 +114,6 @@ namespace PlatformerGame
 
                 float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
                 networkPosition += (Rb.velocity * lag);
-
-                //rb.position = networkPosition;
             }
         }
 
@@ -112,7 +121,13 @@ namespace PlatformerGame
         {
             if (currentMovementState != null)
             {
-                currentMovementState = currentMovementState.UpdateState(animator, this, stats);
+                StateBase newState = currentMovementState.UpdateState(animator, this, stats);
+                if(newState != null)
+                {
+                    currentMovementState.ExitState(animator, this, stats);
+                    newState.EnterState(animator, this, stats);
+                    currentMovementState = newState;
+                }
             }
 
 
@@ -129,6 +144,7 @@ namespace PlatformerGame
                 if(PhotonNetwork.PlayerList.Length > 1)
                     targetObject.transform.position = NetworkManager.instance.GetSpinePos(true);
             }
+
         }
 
 
@@ -142,8 +158,6 @@ namespace PlatformerGame
                 {
                     AimAtTarget(spine, targetTransformPos);
                 }
-                //Debug.DrawRay(aimTransform.position, aimTransform.forward * 10, Color.red, 1);
-                //Debug.DrawRay(spine.position, spine.forward * 10, Color.green, 1);
             }
 
             NetworkManager.instance.SyncPlayerSpineRotation();
@@ -156,16 +170,13 @@ namespace PlatformerGame
 
         void AimAtTarget(Transform bone, Vector3 targetPosition)
         {
-            //bone.forward = (targetPosition - bone.transform.position).normalized;
-
             Vector3 aimDirection = aimTransform.forward;
             Vector3 targetDir = targetPosition - aimTransform.position;
             Quaternion aimTowards = Quaternion.FromToRotation(aimDirection, targetDir);
-            //Quaternion blendedRotation = Quaternion.Slerp(Quaternion.identity, aimTowards, 1);
             bone.rotation = aimTowards * bone.rotation;
         }
 
-        public bool EnableAimingToTarget(bool enable)
+        public void EnableAimingToTarget(bool enable)
         {
             enableAiming = enable;
 
@@ -173,15 +184,7 @@ namespace PlatformerGame
             {
                 spine.rotation = Quaternion.identity;
             }
-
-            return enableAiming;
         }
-
-        //private void OnDrawGizmos()
-        //{
-        //    Gizmos.color = Color.red;
-        //    Gizmos.DrawSphere(targetObject.position, 0.05f);
-        //}
 
         private void OnTriggerEnter(Collider other)
         {
@@ -197,6 +200,11 @@ namespace PlatformerGame
                         collectable.Collected();
                     }
                 }
+                else if(collectable.type == CollectableType.speedBoost)
+                {
+                    AddSpeed(collectable.value);
+                    collectable.Collected();
+                }
             }
 
             if (other.CompareTag("Bullet"))
@@ -204,15 +212,7 @@ namespace PlatformerGame
                 Bullet bl = other.GetComponent<Bullet>();
                 if (bl)
                 {
-                    float newSpeed = stats.Speed - bl.speedDecreaseAmount;
-
-                    SetSpeed(newSpeed);
-                    //PlayEffects
-
-                    if (photonView.IsMine)
-                    {
-                        NetworkManager.instance.ReplicateSpeed(newSpeed);
-                    }
+                    AddSpeed(bl.speedDecreaseAmount);
                 }
             }
             
@@ -221,13 +221,18 @@ namespace PlatformerGame
         public  ItemBase CreateNewInventoryItem(ItemBase itemBase, int inventoryIndex)
         {
             ItemBase clone = null;
-            if((RifleItem)itemBase)
+            if(itemBase.data.itemType == ItemData.ItemType.Rifle)
             {
                 clone = Instantiate(((RifleItem)itemBase));
                 clone.data = Instantiate(clone.data);
                 ((RifleItem)clone).Initialize(inventoryIndex, photonView.Owner ,bulletSpawnSlot, targetObject, weaponSlot, animator, EnableAimingToTarget);
             }
-
+            else if (itemBase.data.itemType == ItemData.ItemType.DoubleJump)
+            {
+                clone = Instantiate(((DoubleJumpItem)itemBase));
+                clone.data = Instantiate(clone.data);
+                ((DoubleJumpItem)clone).Initialize(inventoryIndex, photonView.Owner, EnableDoubleJump, Jump , jumpState, inventory.RemoveCurrentItem, inventory.UpdateButtonUsages);
+            }
             return clone;
         }
 
@@ -268,9 +273,41 @@ namespace PlatformerGame
             if (stats != null)
             {
                 stats.Speed = newSpeed;
+
+                if (indicator)
+                {
+                    indicator.SetPercentage(stats.Speed);
+                }
             }
         }
 
+        public void AddSpeed(float addAmount)
+        {
+            float newSpeed = stats.Speed + addAmount;
+            SetSpeed(newSpeed);
+            //PlayEffects
+
+            if (photonView.IsMine)
+            {
+                NetworkManager.instance.ReplicateSpeed(newSpeed);
+            }
+        }
+
+        public void Jump()
+        {
+            if (currentMovementState != null)
+            {
+                currentMovementState.JumpKeyPressed();
+            }
+        }
+
+        public void EnableDoubleJump(bool enable)
+        {
+            if (currentMovementState != null)
+            {
+                currentMovementState.EnableDoubleJump(enable);
+            }
+        }
 
     }
 }

@@ -32,7 +32,7 @@ namespace PlatformerGame
 
         internal void PrepareButton(ItemData data, int itemIndex)
         {
-            nameText.text = data.name;
+            nameText.text = data.itemName;
             SetUsageAmount(data.totalUsage);
             itemID = data.itemID;
             button.interactable = true;

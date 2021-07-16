@@ -21,7 +21,7 @@ namespace PlatformerGame
 
         float latestLag;
 
-        public void Initialize(int inventoryIndex, Player owner, Transform bulletSpawnSlot, Transform targetTransform, Transform weaponSpawnSlot, Animator animator, Func<bool, bool> OnSwitchTo)
+        public void Initialize(int inventoryIndex, Player owner, Transform bulletSpawnSlot, Transform targetTransform, Transform weaponSpawnSlot, Animator animator, Action<bool> OnSwitchTo)
         {
             Initialize(inventoryIndex, owner, OnSwitchTo);
             this.bulletSpawnSlot = bulletSpawnSlot;
@@ -73,10 +73,9 @@ namespace PlatformerGame
                 animator.SetTrigger("UseItem");
                 data.totalUsage--;
 
-                return this;
             }
 
-            return null;
+            return this;
         }
 
 

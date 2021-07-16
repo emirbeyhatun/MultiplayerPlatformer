@@ -14,17 +14,19 @@ namespace PlatformerGame
     }
     public class Inventory
     {
-        ItemBase currentItem;
-        ItemBase currentItemWithAnimation;
-        const int InventoryLimit = 3;
-        int inventoryCount = 0;
-        List<ItemBase> itemData;
+        private ItemBase[] items;
+        private ItemBase currentItem;
+        private ItemBase currentItemWithAnimation;
+        private List<ItemBase> itemData;
+        private int inventoryCount = 0;
+        private const int InventoryLimit = 3;
+
+        private InventoryEventData eventdata = null;
+        private Animator animator;
+        private NetworkPlayer player;
+        private bool isPlayerLocal = false;
+
         public List<ItemButton> itemButtons;
-        ItemBase[] items;
-        NetworkPlayer player;
-        Animator animator;
-        InventoryEventData eventdata = null;
-        bool isPlayerLocal = false;
 
         public Inventory(ref List<ItemBase> itemData, ref List<ItemButton> itemButtons, NetworkPlayer player, Animator animator, InventoryEventData eventData)
         {
@@ -64,7 +66,6 @@ namespace PlatformerGame
             if (newItem && emptyIndex >= 0)
             {
                 ItemBase clone = player.CreateNewInventoryItem(newItem, emptyIndex);
-                Debug.Log(clone.GetInstanceID());
                 items[emptyIndex] = clone;
                 inventoryCount++;
 
@@ -176,10 +177,9 @@ namespace PlatformerGame
             }
         }
 
-        private void UpdateButtonUsages()
+        public void UpdateButtonUsages()
         {
             if (isPlayerLocal == false) return;
-
 
             for (int j = 0; j < items.Length; j++)
             {
@@ -235,7 +235,7 @@ namespace PlatformerGame
             }
         }
 
-        void RemoveCurrentItem()
+        public void RemoveCurrentItem()
         {
             if (currentItem == null) return;
 
@@ -261,7 +261,7 @@ namespace PlatformerGame
                 {
                     RemoveCurrentItem();
                 }
-
+                UpdateButtonUsages();
                 currentItemWithAnimation = null;
             }
 

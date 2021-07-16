@@ -10,6 +10,7 @@ namespace PlatformerGame
         public static UiManager instance;
         public List<ItemButton> itemButtons;
         public Button useItemButton;
+        public Button jumpButton;
         private void Awake()
         {
             instance = this;

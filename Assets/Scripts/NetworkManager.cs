@@ -17,6 +17,7 @@ namespace PlatformerGame
         [SerializeField] private GameObject[] spawnPoints;
         [SerializeField] private CameraController cam;
         [SerializeField] private GameObject playerPrefab;
+        [SerializeField] private GameObject tutorial;
 
         private NetworkPlayer localPlayerInstance;
         private NetworkPlayer remotePlayerInstance;
@@ -68,6 +69,9 @@ namespace PlatformerGame
 
         private void OnCountdownTimerIsExpired()
         {
+            if(tutorial)
+                tutorial.gameObject.SetActive(false);
+           
             StartGame();
         }
 

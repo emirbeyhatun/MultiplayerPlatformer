@@ -12,7 +12,7 @@ namespace PlatformerGame
         {
             if (target)
             {
-                transform.position = target.transform.position + distance;
+                transform.position = Vector3.Lerp(transform.position, target.transform.position + distance, Time.deltaTime * 4);
             }
         }
 
@@ -20,7 +20,10 @@ namespace PlatformerGame
         {
             this.target = target;
 
-           // distance = transform.position - target.position;
+            if (target)
+            {
+                transform.position = target.transform.position + distance;
+            }
         }
     }
 }
