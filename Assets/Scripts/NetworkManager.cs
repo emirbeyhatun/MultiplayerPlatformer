@@ -155,6 +155,7 @@ namespace PlatformerGame
             }
         }
 
+
         private void StartGame()
         {
             if (PhotonNetwork.IsMasterClient)

@@ -16,6 +16,7 @@ namespace PlatformerGame
         public int itemID;
         public int totalUsage;
         public float value;
+        public float speed;
         public float cooldown;
         public string itemName;
         public string animationKey;

@@ -87,7 +87,7 @@ namespace PlatformerGame
 
                 if (bl)
                 {
-                    bl.Init(owner, (targetTransform.position - bulletSpawnSlot.position).normalized, data.value,latestLag);
+                    bl.Init(owner, bulletSpawnSlot, (targetTransform.position - bulletSpawnSlot.position).normalized, data.speed, data.value,latestLag);
                 }
             }
 

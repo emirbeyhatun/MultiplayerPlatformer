@@ -22,6 +22,8 @@ namespace PlatformerGame
 
         public override void EnterState(Animator animator, NetworkPlayer player, PlayerStat stats)
         {
+            if (player == null || animator == null || stats == null) return;
+
             DecreaseJumpAvailibilty();
             if (CanJump() == false && sharedData.defaultJumpAmount > 1 && onDoubleJump != null)
             {
@@ -29,10 +31,7 @@ namespace PlatformerGame
             }
             timer = 0;
 
-            if (animator)
-            {
-                animator.SetBool("Jump", true);
-            }
+            animator.SetBool("Jump", true);
 
             this.player = player;
             yPosition = player.transform.position.y;
@@ -46,6 +45,8 @@ namespace PlatformerGame
 
         public override void ExitState(Animator animator, NetworkPlayer player, PlayerStat stats)
         {
+            if (player == null || animator == null || stats == null) return;
+
             animator.SetBool("Jump", false);
             nextState = null;
         }
@@ -61,6 +62,8 @@ namespace PlatformerGame
 
         public override StateBase UpdateState(Animator animator, NetworkPlayer player, PlayerStat stats)
         {
+            if (player == null || animator == null || stats == null) return null;
+
             if (nextState != null)
             {
                 return nextState;

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c58700657b49848b78ae22fc27103e, type: 3}
+  m_Name: DoubleJumpData
+  m_EditorClassIdentifier: 
+  itemType: 1
+  itemID: 2
+  totalUsage: 2
+  value: 0
+  speed: 0
+  cooldown: 0
+  itemName: Double Jump
+  animationKey: 
+  model: {fileID: 174283539301528640, guid: 6f1c2b17b870511479e9924ca13f2136, type: 3}
+  projectile: {fileID: 0}
+  localRotation: {x: 0, y: 0, z: 0, w: 0}
+  localPosition: {x: 0, y: 0, z: 0}
+  localBulletSpawnPosition: {x: 0, y: 0, z: 0}

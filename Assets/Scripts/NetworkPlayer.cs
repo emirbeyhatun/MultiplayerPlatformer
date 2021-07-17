@@ -28,11 +28,14 @@ namespace PlatformerGame
         [SerializeField] private Transform bulletSpawnSlot;
         public Transform spine;
         public LayerMask groundLayer;
+        public LayerMask raycastLayer;
+
 
         private SharedStateData stateData = new SharedStateData();
         public RunState runState;
         public JumpState jumpState;
         public FallState fallState;
+        public GetPulledState getPulledState;
         private StateBase currentMovementState = null;
 
 
@@ -40,6 +43,7 @@ namespace PlatformerGame
         private Vector3 networkPosition;
         private Quaternion networkRotation;
         private bool enableAiming = false;
+
 
 
         public void Awake()
@@ -51,10 +55,12 @@ namespace PlatformerGame
             runState = new RunState(stateData);
             jumpState = new JumpState(stateData);
             fallState = new FallState(stateData);
-    }
+            getPulledState = new GetPulledState(stateData);
+        }
 
         private void Start()
         {
+            ;
             if (photonView.IsMine)
             {
                 inventory = new Inventory(ref InventoryManager.instance.itemData, ref UiManager.instance.itemButtons, this, animator, NetworkManager.instance.inventoryEventData);
@@ -70,10 +76,13 @@ namespace PlatformerGame
                 pointerDown.eventID = EventTriggerType.PointerDown;
                 pointerDown.callback.AddListener(delegate { Jump(); });
                 trigger.triggers.Add(pointerDown);
+
+                gameObject.layer = LayerMask.NameToLayer("Player");
             }
             else
             {
                 inventory = new Inventory(ref InventoryManager.instance.itemData, this, animator);
+                gameObject.layer = LayerMask.NameToLayer("Enemy");
             }
         }
 
@@ -122,12 +131,7 @@ namespace PlatformerGame
             if (currentMovementState != null)
             {
                 StateBase newState = currentMovementState.UpdateState(animator, this, stats);
-                if(newState != null)
-                {
-                    currentMovementState.ExitState(animator, this, stats);
-                    newState.EnterState(animator, this, stats);
-                    currentMovementState = newState;
-                }
+                SetState(newState);
             }
 
 
@@ -135,16 +139,18 @@ namespace PlatformerGame
             {
                 Rb.position = Vector3.MoveTowards(Rb.position, networkPosition, Time.fixedDeltaTime);
                 Rb.rotation = Quaternion.RotateTowards(Rb.rotation, networkRotation, Time.fixedDeltaTime * 100.0f);
+            }
 
+            if (!photonView.IsMine)
+            {
                 if (PhotonNetwork.PlayerList.Length > 1)
                     targetObject.transform.position = NetworkManager.instance.GetSpinePos(false);
             }
             else
             {
-                if(PhotonNetwork.PlayerList.Length > 1)
+                if (PhotonNetwork.PlayerList.Length > 1)
                     targetObject.transform.position = NetworkManager.instance.GetSpinePos(true);
             }
-
         }
 
 
@@ -152,24 +158,43 @@ namespace PlatformerGame
         {
             if (enableAiming)
             {
-                Vector3 targetTransformPos = targetObject.position;
-
-                for (int i = 0; i < 20; i++)
-                {
-                    AimAtTarget(spine, targetTransformPos);
-                }
+                AimInUpdate();
             }
 
-            NetworkManager.instance.SyncPlayerSpineRotation();
-            if (!photonView.IsMine)
+            if (photonView.IsMine)
+            {
+                NetworkManager.instance.SyncPlayerSpineRotation();
+            }
+            else
             {
                 spine.rotation = spineNewRotation;
             }
         }
 
+        void AimInUpdate()
+        {
+            Vector3 targetTransformPos = targetObject.position;
+            Vector3 dir = targetTransformPos - spine.position;
+            RaycastHit hit;
+
+            if (Physics.Raycast(spine.transform.position, dir.normalized, out hit, dir.magnitude, raycastLayer))
+            {
+                if (hit.collider.GetComponent<NetworkPlayer>() != null)
+                {
+                    for (int i = 0; i < 20; i++)
+                    {
+                        AimAtTarget(spine, targetTransformPos);
+                    }
+                    return;
+                }
+            }
+
+            spine.localRotation = Quaternion.identity;
+        }
 
         void AimAtTarget(Transform bone, Vector3 targetPosition)
         {
+
             Vector3 aimDirection = aimTransform.forward;
             Vector3 targetDir = targetPosition - aimTransform.position;
             Quaternion aimTowards = Quaternion.FromToRotation(aimDirection, targetDir);
@@ -182,7 +207,7 @@ namespace PlatformerGame
 
             if(enable == false && spine)
             {
-                spine.rotation = Quaternion.identity;
+                spine.localRotation = Quaternion.identity;
             }
         }
 
@@ -210,9 +235,10 @@ namespace PlatformerGame
             if (other.CompareTag("Bullet"))
             {
                 Bullet bl = other.GetComponent<Bullet>();
-                if (bl)
+                if (bl && bl.Owner.ActorNumber != photonView.Owner.ActorNumber)
                 {
                     AddSpeed(bl.speedDecreaseAmount);
+                    StartPullState(bl.OwnerTransform);
                 }
             }
             
@@ -309,6 +335,37 @@ namespace PlatformerGame
             }
         }
 
+        public void EnablePlayerControls(bool enable)
+        {
+            UiManager.instance.EnableControls(enable, photonView);
+        }
+
+        public void EnablePlayerGravity(bool enable)
+        {
+            if(Rb)
+                Rb.useGravity = enable;
+        }
+
+
+        public void StartPullState(Transform targetTransform)
+        {
+            if (getPulledState != null && targetTransform)
+            {
+                getPulledState.targetTransform = targetTransform;
+
+                SetState(getPulledState);
+            }
+        }
+
+        public void SetState(StateBase newState)
+        {
+            if (newState != null)
+            {
+                currentMovementState.ExitState(animator, this, stats);
+                newState.EnterState(animator, this, stats);
+                currentMovementState = newState;
+            }
+        }
     }
 }
 
