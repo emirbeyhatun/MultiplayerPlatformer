@@ -10,7 +10,7 @@ namespace PlatformerGame
         float timeLimit = 3;
         float timer;
         bool savedAimStatus;
-        public GetPulledState(SharedStateData data) : base(data)
+        public GetPulledState(SharedStateData data, MovementStateType type) : base(data, type)
         {
 
         }

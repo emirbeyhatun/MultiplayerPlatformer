@@ -54,10 +54,10 @@ namespace PlatformerGame
             animator = GetComponent<Animator>();
             
 
-            runState = new RunState(stateData);
-            jumpState = new JumpState(stateData);
-            fallState = new FallState(stateData);
-            getPulledState = new GetPulledState(stateData);
+            runState = new RunState(stateData, MovementStateType.run);
+            jumpState = new JumpState(stateData, MovementStateType.jump);
+            fallState = new FallState(stateData, MovementStateType.fall);
+            getPulledState = new GetPulledState(stateData, MovementStateType.getPulled);
 
             //if (targetObject)
             //    targetObjectDefaultPos = targetObject.transform.position;

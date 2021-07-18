@@ -27,7 +27,7 @@ namespace PlatformerGame
                     instantiatedModel = Instantiate(item.data.model, transform);
                     if (instantiatedModel)
                     {
-                        instantiatedModel.transform.localScale *= 3;
+                        instantiatedModel.transform.localScale *= 2;
                         GetComponent<Renderer>().enabled = false;
                         instantiatedModel.transform.localRotation = Quaternion.Euler(0, 0, -90);
                     }

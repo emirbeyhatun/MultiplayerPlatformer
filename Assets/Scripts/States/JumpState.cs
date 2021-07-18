@@ -15,9 +15,8 @@ namespace PlatformerGame
         private float timer = 0;
 
         public Action onDoubleJump;
-        public JumpState(SharedStateData data) : base(data)
+        public JumpState(SharedStateData data, MovementStateType type) : base(data,  type)
         {
-            ray = new Ray();
         }
 
         public override void EnterState(Animator animator, NetworkPlayer player, PlayerStat stats)
@@ -57,7 +56,6 @@ namespace PlatformerGame
             {
                 nextState = player.jumpState;
             }
-
         }
 
         public override StateBase UpdateState(Animator animator, NetworkPlayer player, PlayerStat stats)

@@ -9,9 +9,9 @@ namespace PlatformerGame
         private Ray ray;
         private StateBase nextState = null;
         private NetworkPlayer player;
-        public RunState(SharedStateData data):base(data)
+        public RunState(SharedStateData data, MovementStateType type) :base(data, type)
         {
-            ray = new Ray();
+
         }
 
         public override void EnterState(Animator animator, NetworkPlayer player, PlayerStat stats)

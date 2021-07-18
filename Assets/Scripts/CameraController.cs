@@ -6,10 +6,19 @@ namespace PlatformerGame
 {
     public class CameraController : MonoBehaviour
     {
+        public static CameraController instance;
         private Transform target;
         [SerializeField]private Vector3 distance;
+
+        Vector3 lastFramePosition;
+
+        private void Awake()
+        {
+            instance = this;
+        }
         private void LateUpdate()
         {
+            lastFramePosition = transform.position;
             if (target)
             {
                 transform.position = Vector3.Lerp(transform.position, target.transform.position + distance, Time.deltaTime * 4);
@@ -24,6 +33,11 @@ namespace PlatformerGame
             {
                 transform.position = target.transform.position + distance;
             }
+        }
+
+        public Vector3 GetPosChange()
+        {
+            return lastFramePosition - transform.position;
         }
     }
 }

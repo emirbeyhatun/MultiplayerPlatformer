@@ -4,6 +4,13 @@ using UnityEngine;
 
 namespace PlatformerGame
 {
+    public enum MovementStateType
+    {
+        run,
+        jump, 
+        fall,
+        getPulled
+    }
     public class SharedStateData
     {
         public const int doubleJumpAmount = 2;
@@ -13,11 +20,13 @@ namespace PlatformerGame
     }
     public  class StateBase
     {
+        protected MovementStateType stateType;
         public SharedStateData sharedData { protected get; set; }
 
-        public StateBase(SharedStateData data)
+        public StateBase(SharedStateData data, MovementStateType type)
         {
             sharedData = data;
+            stateType = type;
         }
         protected void ResetAvailableJump()
         {
@@ -34,7 +43,9 @@ namespace PlatformerGame
             {
                 sharedData.defaultJumpAmount = SharedStateData.singleJumpAmount;
             }
-            ResetAvailableJump();
+
+            if(stateType == MovementStateType.run)
+                ResetAvailableJump();
         }
 
         protected void DecreaseJumpAvailibilty()

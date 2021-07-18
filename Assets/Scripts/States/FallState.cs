@@ -10,7 +10,7 @@ namespace PlatformerGame
         private StateBase nextState = null;
         private NetworkPlayer player;
 
-        public FallState(SharedStateData data) : base(data)
+        public FallState(SharedStateData data, MovementStateType type) : base(data, type)
         {
             ray = new Ray();
         }
