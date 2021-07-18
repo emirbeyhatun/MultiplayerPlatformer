@@ -6,10 +6,10 @@ namespace PlatformerGame
 {
     public class PlayerStat
     {
-        public const float minSpeed = 3;
-        public const float maxSpeed = 15;
+        public const float minSpeed = 5;
+        public const float maxSpeed = 9;
 
-        private float speed = 6;
+        private float speed = 7;
         public float Speed { get=> speed;  set { SetSpeed(value); }}
         public Vector3 SpeedVector { get { return new Vector3(speed, 0, 0); } }
         public float JumpForce { get; private set; } = 8;

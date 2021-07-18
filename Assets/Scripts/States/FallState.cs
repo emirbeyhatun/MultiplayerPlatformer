@@ -52,13 +52,22 @@ namespace PlatformerGame
             {
                 return nextState;
             }
-            ray.origin = player.transform.position;
-            ray.direction = player.transform.up * -1;
+            float xOffset = 0.25f;
+            ray.origin = player.transform.position - new Vector3(xOffset, 0, 0);
+            ray.direction = Vector3.up * -1;
 
+            //Debug.DrawRay(ray.origin, ray.direction*0.1f, Color.red, 1);
             if (Physics.Raycast(ray, NetworkPlayer.FallRaycastDownLength, player.groundLayer))
             {
                 return player.runState;
             }
+
+            ray.origin = player.transform.position + new Vector3(xOffset, 0, 0);
+            if (Physics.Raycast(ray, NetworkPlayer.FallRaycastDownLength, player.groundLayer))
+            {
+                return player.runState;
+            }
+
             return null;
         }
     }

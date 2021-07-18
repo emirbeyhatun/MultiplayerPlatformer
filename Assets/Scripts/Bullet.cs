@@ -5,6 +5,10 @@ using UnityEngine;
 
 namespace PlatformerGame
 {
+    public enum BulletType
+    {
+        speedChanger, hook
+    }
     public class Bullet : MonoBehaviour
     {
         private float speed = 20;
@@ -13,6 +17,8 @@ namespace PlatformerGame
         public float speedDecreaseAmount;
         private Rigidbody rb;
 
+        public BulletType bulletType;
+        Ray ray;
         protected virtual void Awake()
         {
             rb = GetComponent<Rigidbody>();
@@ -23,14 +29,26 @@ namespace PlatformerGame
             Destroy(gameObject, 10.0f);
         }
 
-        public void OnTriggerEnter(Collider collider)
+        public virtual void Update()
+        {
+            ray.origin = transform.position;
+            ray.direction = rb.velocity.normalized;
+            RaycastHit hiInfo;
+            Debug.DrawRay(ray.origin, ray.direction * 0.2f, Color.red, 1);
+            if (Physics.Raycast(ray, out hiInfo, 0.5f))
+            {
+                OnCollision(hiInfo.collider);
+                Destroy(gameObject);
+            }
+           
+        }
+        public void OnCollision(Collider collider)
         {
             NetworkPlayer player = collider.GetComponent<NetworkPlayer>();
-            if (player && player.photonView.Owner.ActorNumber == Owner.ActorNumber)
+            if (player && player.photonView.Owner.ActorNumber != Owner.ActorNumber)
             {
-                return;
+                player.OnHitByBullet(this);
             }
-            Destroy(gameObject);
         }
 
         public void Init(Player owner, Transform ownerTransform, Vector3 originalDirection, float initialSpeed,float speedDecreaseAmount, float lag)

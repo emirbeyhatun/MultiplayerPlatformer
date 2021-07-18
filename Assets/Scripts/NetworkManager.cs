@@ -160,21 +160,17 @@ namespace PlatformerGame
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                //float ping = PhotonNetwork.GetPing();
-
                 photonView.RPC("RPC_StartRace", RpcTarget.AllViaServer/*, PhotonNetwork.Time*/);
             }
-           // StartRace(/*PhotonNetwork.Time*/);
         }
 
         [PunRPC]
-        private void RPC_StartRace(/*double ServerTime*/)
+        private void RPC_StartRace()
         {
             if (localPlayerInstance)
             {
         
-                localPlayerInstance.StartRunning(/*ServerTime*/);
-                //playerInstance.StartRunning(PhotonNetwork.Time - ServerTime);
+                localPlayerInstance.StartRunning();
             }
 
             if (remotePlayerInstance)
@@ -197,23 +193,6 @@ namespace PlatformerGame
                 remotePlayerInstance.UseItem(lag);
             }
         }
-
-        
-
-        //public void ReplicateItemAdd()
-        //{
-        //    photonView.RPC("RPC_AddItem", RpcTarget.Others);
-        //}
-
-        //[PunRPC]
-        //private void RPC_AddItem(PhotonMessageInfo photonMessageInfo)
-        //{
-        //    if (remotePlayerInstance)
-        //    {
-        //        float lag = (float)(photonMessageInfo.SentServerTime - PhotonNetwork.Time);
-        //        remotePlayerInstance.AddItem(lag);
-        //    }
-        //}
 
         public void ReplicateSpeed(float newSpeed)
         {

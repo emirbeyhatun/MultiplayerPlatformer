@@ -14,7 +14,7 @@ namespace PlatformerGame
     public class NetworkPlayer : MonoBehaviourPun, IPunObservable
     {
         public const float MovementRaycastDownLength = 0.5f;
-        public const float FallRaycastDownLength = 0.1f;
+        public const float FallRaycastDownLength = 0.3f;
 
         private Inventory inventory;
         private PlayerStat stats;
@@ -28,7 +28,7 @@ namespace PlatformerGame
         [SerializeField] private Transform bulletSpawnSlot;
         public Transform spine;
         public LayerMask groundLayer;
-        public LayerMask raycastLayer;
+        public LayerMask sightRaycastLayer;
 
 
         private SharedStateData stateData = new SharedStateData();
@@ -44,6 +44,8 @@ namespace PlatformerGame
         private Quaternion networkRotation;
         private bool enableAiming = false;
 
+        //private Vector3 targetObjectDefaultPos;
+
 
 
         public void Awake()
@@ -56,6 +58,9 @@ namespace PlatformerGame
             jumpState = new JumpState(stateData);
             fallState = new FallState(stateData);
             getPulledState = new GetPulledState(stateData);
+
+            //if (targetObject)
+            //    targetObjectDefaultPos = targetObject.transform.position;
         }
 
         private void Start()
@@ -126,9 +131,10 @@ namespace PlatformerGame
             }
         }
 
+
         public void FixedUpdate()
         {
-            if (currentMovementState != null)
+            if (currentMovementState != null && photonView.IsMine)
             {
                 StateBase newState = currentMovementState.UpdateState(animator, this, stats);
                 SetState(newState);
@@ -141,22 +147,12 @@ namespace PlatformerGame
                 Rb.rotation = Quaternion.RotateTowards(Rb.rotation, networkRotation, Time.fixedDeltaTime * 100.0f);
             }
 
-            if (!photonView.IsMine)
-            {
-                if (PhotonNetwork.PlayerList.Length > 1)
-                    targetObject.transform.position = NetworkManager.instance.GetSpinePos(false);
-            }
-            else
-            {
-                if (PhotonNetwork.PlayerList.Length > 1)
-                    targetObject.transform.position = NetworkManager.instance.GetSpinePos(true);
-            }
         }
 
 
         private void LateUpdate()
         {
-            if (enableAiming)
+            if (enableAiming && photonView.IsMine)
             {
                 AimInUpdate();
             }
@@ -169,6 +165,19 @@ namespace PlatformerGame
             {
                 spine.rotation = spineNewRotation;
             }
+
+            if (!photonView.IsMine)
+            {
+                if (PhotonNetwork.PlayerList.Length > 1)
+                    targetObject.transform.position = NetworkManager.instance.GetSpinePos(false);
+            }
+            else
+            {
+                if (PhotonNetwork.PlayerList.Length > 1)
+                    targetObject.transform.position = NetworkManager.instance.GetSpinePos(true);
+            }
+
+            
         }
 
         void AimInUpdate()
@@ -177,19 +186,20 @@ namespace PlatformerGame
             Vector3 dir = targetTransformPos - spine.position;
             RaycastHit hit;
 
-            if (Physics.Raycast(spine.transform.position, dir.normalized, out hit, dir.magnitude, raycastLayer))
-            {
-                if (hit.collider.GetComponent<NetworkPlayer>() != null)
-                {
+            //CapsuleCast
+            //if (Physics.Raycast(spine.transform.position, dir.normalized, out hit, dir.magnitude, sightRaycastLayer))
+            //{
+                //if (hit.collider.GetComponent<NetworkPlayer>() != null)
+                //{
                     for (int i = 0; i < 20; i++)
                     {
                         AimAtTarget(spine, targetTransformPos);
                     }
                     return;
-                }
-            }
+                //}
+           // }
 
-            spine.localRotation = Quaternion.identity;
+            //spine.localRotation = Quaternion.identity;
         }
 
         void AimAtTarget(Transform bone, Vector3 targetPosition)
@@ -201,22 +211,46 @@ namespace PlatformerGame
             bone.rotation = aimTowards * bone.rotation;
         }
 
+        public bool GetAiminStatus()
+        {
+            return enableAiming;
+        }
         public void EnableAimingToTarget(bool enable)
         {
             enableAiming = enable;
 
-            if(enable == false && spine)
-            {
-                spine.localRotation = Quaternion.identity;
-            }
+            //if(enable == false && spine)
+            //{
+            //    spine.localRotation = Quaternion.identity;
+            //}
         }
 
         private void OnTriggerEnter(Collider other)
         {
             Collectable collectable = other.GetComponent<Collectable>();
+            OnCollectCollectable(collectable);
+        }
+
+        public void OnHitByBullet(Bullet bl)
+        {
+            if (bl)
+            {
+                if (photonView.IsMine)
+                {
+                    if (bl.bulletType == BulletType.speedChanger)
+                        AddSpeed(bl.speedDecreaseAmount);
+
+                    if (bl.bulletType == BulletType.hook)
+                        StartPullState(bl.OwnerTransform);
+                }
+            }
+        }
+
+        public void OnCollectCollectable(Collectable collectable)
+        {
             if (collectable)
             {
-                if(collectable.type == CollectableType.item && inventory != null)
+                if (collectable.type == CollectableType.item && inventory != null)
                 {
                     bool isAdded = inventory.AddItem(collectable.value);
 
@@ -225,23 +259,12 @@ namespace PlatformerGame
                         collectable.Collected();
                     }
                 }
-                else if(collectable.type == CollectableType.speedBoost)
+                else if (collectable.type == CollectableType.speedBoost)
                 {
                     AddSpeed(collectable.value);
                     collectable.Collected();
                 }
             }
-
-            if (other.CompareTag("Bullet"))
-            {
-                Bullet bl = other.GetComponent<Bullet>();
-                if (bl && bl.Owner.ActorNumber != photonView.Owner.ActorNumber)
-                {
-                    AddSpeed(bl.speedDecreaseAmount);
-                    StartPullState(bl.OwnerTransform);
-                }
-            }
-            
         }
 
         public  ItemBase CreateNewInventoryItem(ItemBase itemBase, int inventoryIndex)

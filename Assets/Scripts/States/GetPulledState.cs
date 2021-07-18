@@ -9,6 +9,7 @@ namespace PlatformerGame
         public Transform targetTransform;
         float timeLimit = 3;
         float timer;
+        bool savedAimStatus;
         public GetPulledState(SharedStateData data) : base(data)
         {
 
@@ -19,7 +20,7 @@ namespace PlatformerGame
             if (targetTransform == null || player == null || animator == null || stats == null) return;
             
             animator.speed = 0;
-
+            savedAimStatus = player.GetAiminStatus();
             player.EnablePlayerGravity(false);
             player.EnableAimingToTarget(false);
             player.EnablePlayerControls(false);
@@ -33,7 +34,7 @@ namespace PlatformerGame
             animator.speed = 1;
 
             player.EnablePlayerGravity(true);
-            player.EnableAimingToTarget(false);
+            player.EnableAimingToTarget(savedAimStatus);
             player.EnablePlayerControls(true);
 
         }

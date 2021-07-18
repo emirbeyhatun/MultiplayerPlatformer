@@ -18,8 +18,9 @@ namespace PlatformerGame
             Destroy(gameObject, 4);
         }
 
-        private void Update()
+        public override void Update()
         {
+            base.Update();
             if (lineRenderer && OwnerTransform)
             {
                 int size = 2;
@@ -27,7 +28,7 @@ namespace PlatformerGame
 
                 Vector3[] points = new Vector3[size];
 
-                points[0] = OwnerTransform.position;
+                points[0] = OwnerTransform.position + new Vector3(0.25f, 0, 0);
                 points[1] = transform.position;
 
                 lineRenderer.SetPositions(points);

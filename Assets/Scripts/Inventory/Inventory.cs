@@ -51,6 +51,7 @@ namespace PlatformerGame
             //If PLayer is Remote
             items = new ItemBase[InventoryLimit];
 
+            isPlayerLocal = false;
             this.itemData = itemData;
             this.player = player;
             this.animator = animator;
