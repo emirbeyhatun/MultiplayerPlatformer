@@ -183,19 +183,19 @@ namespace PlatformerGame
         void AimInUpdate()
         {
             Vector3 targetTransformPos = targetObject.position;
-            Vector3 dir = targetTransformPos - spine.position;
-            RaycastHit hit;
+            //Vector3 dir = targetTransformPos - spine.position;
+            //RaycastHit hit;
 
             //CapsuleCast
             //if (Physics.Raycast(spine.transform.position, dir.normalized, out hit, dir.magnitude, sightRaycastLayer))
             //{
                 //if (hit.collider.GetComponent<NetworkPlayer>() != null)
                 //{
-                    for (int i = 0; i < 20; i++)
-                    {
+                    //for (int i = 0; i < 20; i++)
+                    //{
                         AimAtTarget(spine, targetTransformPos);
-                    }
-                    return;
+                    //}
+                    //return;
                 //}
            // }
 
@@ -372,7 +372,7 @@ namespace PlatformerGame
 
         public void StartPullState(Transform targetTransform)
         {
-            if (getPulledState != null && targetTransform)
+            if (getPulledState != null && targetTransform && photonView.IsMine)
             {
                 getPulledState.targetTransform = targetTransform;
 

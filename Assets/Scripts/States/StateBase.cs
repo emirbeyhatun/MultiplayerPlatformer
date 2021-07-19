@@ -28,7 +28,7 @@ namespace PlatformerGame
             sharedData = data;
             stateType = type;
         }
-        protected void ResetAvailableJump()
+        public void ResetAvailableJump()
         {
             sharedData.availableJumpAmount = sharedData.defaultJumpAmount;
         }
@@ -45,7 +45,15 @@ namespace PlatformerGame
             }
 
             if(stateType == MovementStateType.run)
+            {
                 ResetAvailableJump();
+            }
+                
+        }
+
+        public MovementStateType GetStateType()
+        {
+            return stateType;
         }
 
         protected void DecreaseJumpAvailibilty()

@@ -77,16 +77,6 @@ namespace PlatformerGame
 
         private void InitCharacter()
         {
-            //int PlayerNumber = PhotonNetwork.LocalPlayer.GetPlayerNumber();
-            //if (PlayerNumber < spawnPoints.Length && spawnPoints[PlayerNumber] != null)
-            //{
-            //    localPlayerInstance = (PhotonNetwork.Instantiate("Player", spawnPoints[PlayerNumber].transform.position, spawnPoints[PlayerNumber].transform.rotation, 0)).GetComponent<NetworkPlayer>();
-            //    if (localPlayerInstance && cam)
-            //    {
-            //        localPlayerInstance.SetStats(new PlayerStat());
-            //        cam.SetTarget(localPlayerInstance.transform);
-            //    }
-            //}
             InstantiateLocalPlayer();
         }
 

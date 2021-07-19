@@ -9,6 +9,10 @@ namespace PlatformerGame
         private Ray ray;
         private StateBase nextState = null;
         private NetworkPlayer player;
+
+        private float timeLimit = 0.15f;
+        private float timer = 0;
+        private bool jumpReset = false;
         public RunState(SharedStateData data, MovementStateType type) :base(data, type)
         {
 
@@ -22,7 +26,9 @@ namespace PlatformerGame
             animator.SetBool("Run", true);
             
             nextState = null;
-            ResetAvailableJump();
+
+            jumpReset = false;
+            timer = 0;
         }
 
         public override void ExitState(Animator animator, NetworkPlayer player, PlayerStat stats)
@@ -49,6 +55,14 @@ namespace PlatformerGame
             if (nextState != null)
             {
                 return nextState;
+            }
+
+            timer += Time.deltaTime;
+
+            if(timer > timeLimit && jumpReset == false)
+            {
+                jumpReset = true;
+                ResetAvailableJump();
             }
 
             Vector3 speedVec = stats.SpeedVector;

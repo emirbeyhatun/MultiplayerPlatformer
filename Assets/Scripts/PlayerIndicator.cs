@@ -7,19 +7,31 @@ namespace PlatformerGame
 {
     public class PlayerIndicator : MonoBehaviour
     {
-        [SerializeField]private Image bar;
+        [SerializeField] private Image bar;
         [SerializeField] private Image localPlayerIndicator;
         [SerializeField] private NetworkPlayer player;
+        [SerializeField] private Text nameTag;
         private Camera cam;
 
 
         private void Start()
         {
             cam = Camera.main;
-
-            if (player && player.photonView.IsMine == false)
+            if (player && localPlayerIndicator)
             {
-                localPlayerIndicator.gameObject.SetActive(false);
+                if (player.photonView.IsMine == true)
+                {
+                    localPlayerIndicator.color = Color.green;
+                }
+                else
+                {
+                    localPlayerIndicator.color = Color.red;
+                }
+            }
+
+            if(nameTag && player && player.photonView.Owner != null)
+            {
+                nameTag.text = player.photonView.Owner.NickName;
             }
         }
 
