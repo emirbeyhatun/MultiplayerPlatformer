@@ -56,7 +56,8 @@ namespace PlatformerGame
             ray.origin = player.transform.position - new Vector3(xOffset, 0, 0);
             ray.direction = Vector3.up * -1;
 
-            //Debug.DrawRay(ray.origin, ray.direction*0.1f, Color.red, 1);
+            //We double check ground layer to prevent getting stucked
+            //if we have ground underneath then we return to run state
             if (Physics.Raycast(ray, NetworkPlayer.FallRaycastDownLength, player.groundLayer))
             {
                 return player.runState;

@@ -61,6 +61,7 @@ namespace PlatformerGame
 
             if(timer > timeLimit && jumpReset == false)
             {
+                //we want to reset our jump after a delay 
                 jumpReset = true;
                 ResetAvailableJump();
             }
@@ -72,6 +73,7 @@ namespace PlatformerGame
             ray.origin = player.transform.position;
             ray.direction = player.transform.up * -1;
 
+            //If we dont have a ground underneath then we are indeed falling
             if (Physics.Raycast(ray, NetworkPlayer.MovementRaycastDownLength, player.groundLayer) == false)
             {
                 return player.fallState;

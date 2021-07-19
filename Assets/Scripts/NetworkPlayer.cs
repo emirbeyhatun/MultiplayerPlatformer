@@ -53,58 +53,69 @@ namespace PlatformerGame
             Rb = GetComponent<Rigidbody>();
             animator = GetComponent<Animator>();
             
-
+            //Initializing the states
             runState = new RunState(stateData, MovementStateType.run);
             jumpState = new JumpState(stateData, MovementStateType.jump);
             fallState = new FallState(stateData, MovementStateType.fall);
             getPulledState = new GetPulledState(stateData, MovementStateType.getPulled);
 
-            //if (targetObject)
-            //    targetObjectDefaultPos = targetObject.transform.position;
         }
 
         private void Start()
         {
-            ;
             if (photonView.IsMine)
             {
+                //if player is local
+                //creates an inventory and injects default itemdata information, ui item buttons, and inventory event data struct which contains network delegates
                 inventory = new Inventory(ref InventoryManager.instance.itemData, ref UiManager.instance.itemButtons, this, animator, NetworkManager.instance.inventoryEventData);
 
+
+                //Bind Use item button(Right side of whole screen) to UseItem function
                 EventTrigger trigger = UiManager.instance.useItemButton.gameObject.AddComponent<EventTrigger>();
                 var pointerDown = new EventTrigger.Entry();
                 pointerDown.eventID = EventTriggerType.PointerDown;
                 pointerDown.callback.AddListener(delegate { inventory.UseItem(0); });
                 trigger.triggers.Add(pointerDown);
 
+
+                //Bind Jump Button button(Left side of whole screen) to Jump function
                 pointerDown = new EventTrigger.Entry();
                 trigger = UiManager.instance.jumpButton.gameObject.AddComponent<EventTrigger>();
                 pointerDown.eventID = EventTriggerType.PointerDown;
                 pointerDown.callback.AddListener(delegate { Jump(); });
                 trigger.triggers.Add(pointerDown);
 
+                //Set local player's layer to player
                 gameObject.layer = LayerMask.NameToLayer("Player");
             }
             else
             {
+                //if player is remote then we just pass in the default item list, we dont want to pass ui buttons and network delegates
                 inventory = new Inventory(ref InventoryManager.instance.itemData, this, animator);
+                //Set remote player's layer to player
                 gameObject.layer = LayerMask.NameToLayer("Enemy");
             }
         }
 
         public void SetStats(PlayerStat NewStats)
         {
+            //Set player stats that contains speed, jump force etc
             stats = NewStats;
 
             if (indicator)
             {
+                //Reset 3d speed bar
                 indicator.SetPercentage(stats.Speed);
             }
         }
 
         public void StartRunning()
         {
+            //This is called when the count down ends and the game starts
             if (Rb != null && stats != null)
             {
+                //We start the run state in bit remote and local because we don't want to delay local enemy players movement,
+                //otherwise it would wait for the reques to come from server
                 currentMovementState = runState;
                 currentMovementState.EnterState(animator, this, stats);
             }
@@ -136,6 +147,7 @@ namespace PlatformerGame
         {
             if (currentMovementState != null && photonView.IsMine)
             {
+                //We update our state and if there is a change we chance the state, only for local player
                 StateBase newState = currentMovementState.UpdateState(animator, this, stats);
                 SetState(newState);
             }
@@ -143,6 +155,7 @@ namespace PlatformerGame
 
             if (!photonView.IsMine)
             {
+                //Lag compansation added
                 Rb.position = Vector3.MoveTowards(Rb.position, networkPosition, Time.fixedDeltaTime);
                 Rb.rotation = Quaternion.RotateTowards(Rb.rotation, networkRotation, Time.fixedDeltaTime * 100.0f);
             }
@@ -154,9 +167,12 @@ namespace PlatformerGame
         {
             if (enableAiming && photonView.IsMine)
             {
+                //if we have switched out item to a gun then we rotate spine to a rotation that it looks at the target player
                 AimInUpdate();
             }
 
+
+            //We send our spine rotation to remotes
             if (photonView.IsMine)
             {
                 NetworkManager.instance.SyncPlayerSpineRotation();
@@ -166,6 +182,8 @@ namespace PlatformerGame
                 spine.rotation = spineNewRotation;
             }
 
+
+            //Set target objects position to enemy spine position, because we use this empty object to aim
             if (!photonView.IsMine)
             {
                 if (PhotonNetwork.PlayerList.Length > 1)
@@ -183,28 +201,12 @@ namespace PlatformerGame
         void AimInUpdate()
         {
             Vector3 targetTransformPos = targetObject.position;
-            //Vector3 dir = targetTransformPos - spine.position;
-            //RaycastHit hit;
-
-            //CapsuleCast
-            //if (Physics.Raycast(spine.transform.position, dir.normalized, out hit, dir.magnitude, sightRaycastLayer))
-            //{
-                //if (hit.collider.GetComponent<NetworkPlayer>() != null)
-                //{
-                    //for (int i = 0; i < 20; i++)
-                    //{
-                        AimAtTarget(spine, targetTransformPos);
-                    //}
-                    //return;
-                //}
-           // }
-
-            //spine.localRotation = Quaternion.identity;
+            AimAtTarget(spine, targetTransformPos);
         }
 
         void AimAtTarget(Transform bone, Vector3 targetPosition)
         {
-
+            //Rotate spine to target objects direction
             Vector3 aimDirection = aimTransform.forward;
             Vector3 targetDir = targetPosition - aimTransform.position;
             Quaternion aimTowards = Quaternion.FromToRotation(aimDirection, targetDir);
@@ -218,21 +220,18 @@ namespace PlatformerGame
         public void EnableAimingToTarget(bool enable)
         {
             enableAiming = enable;
-
-            //if(enable == false && spine)
-            //{
-            //    spine.localRotation = Quaternion.identity;
-            //}
         }
 
         private void OnTriggerEnter(Collider other)
         {
+            //if we collide with a collectable object then we want to collect them
             Collectable collectable = other.GetComponent<Collectable>();
             OnCollectCollectable(collectable);
         }
 
         public void OnHitByBullet(Bullet bl)
         {
+            //this is called by the bullet on hit
             if (bl)
             {
                 if (photonView.IsMine)
@@ -269,9 +268,13 @@ namespace PlatformerGame
 
         public  ItemBase CreateNewInventoryItem(ItemBase itemBase, int inventoryIndex)
         {
+            //This is called by the inventory object whenever it needs a new item to add 
+
+            //Items are injected with their needs
             ItemBase clone = null;
             if(itemBase.data.itemType == ItemData.ItemType.Rifle)
             {
+                //rifle needs to enable aim on switch so we pass the function
                 clone = Instantiate(((RifleItem)itemBase));
                 clone.data = Instantiate(clone.data);
                 ((RifleItem)clone).Initialize(inventoryIndex, photonView.Owner ,bulletSpawnSlot, targetObject, weaponSlot, animator, EnableAimingToTarget);
@@ -311,6 +314,7 @@ namespace PlatformerGame
 
         public void TriggerItemAnimationEvent()
         {
+            //this is called in the shoot animation, we dont spawn bullets in useitem(), rather we spawn it with animation event
             if (inventory != null)
             {
                 inventory.TriggerAnimationEvent();
@@ -334,10 +338,10 @@ namespace PlatformerGame
         {
             float newSpeed = stats.Speed + addAmount;
             SetSpeed(newSpeed);
-            //PlayEffects
 
             if (photonView.IsMine)
             {
+                //On Speed change we send that data to remotes
                 NetworkManager.instance.ReplicateSpeed(newSpeed);
             }
         }
@@ -372,6 +376,7 @@ namespace PlatformerGame
 
         public void StartPullState(Transform targetTransform)
         {
+            //when we get pulled by the hook gun then we change our state
             if (getPulledState != null && targetTransform && photonView.IsMine)
             {
                 getPulledState.targetTransform = targetTransform;

@@ -37,10 +37,6 @@ namespace PlatformerGame
 
         private void Update()
         {
-            //if (Input.GetKeyDown(KeyCode.A))
-            //{
-            //    startMoving = true;
-            //}
             if (startMoving && timer <= timeLimit)
             {
                 timer += Time.deltaTime;

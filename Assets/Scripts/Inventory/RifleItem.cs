@@ -87,8 +87,8 @@ namespace PlatformerGame
 
                 if (bl)
                 {
+                    //creates bullet locally, in inventory function UseItem we replicate item use 
                     bl.Init(owner, weaponSpawnSlot, (targetTransform.position - bulletSpawnSlot.position).normalized, data.speed, data.value, latestLag);
-                    //bl.Init(owner, weaponSpawnSlot, bulletSpawnSlot.forward, data.speed, data.value, latestLag);
                 }
             }
 

@@ -34,7 +34,6 @@ namespace PlatformerGame
             ray.origin = transform.position;
             ray.direction = rb.velocity.normalized;
             RaycastHit hiInfo;
-            Debug.DrawRay(ray.origin, ray.direction * 0.2f, Color.red, 1);
             if (Physics.Raycast(ray, out hiInfo, 0.5f))
             {
                 OnCollision(hiInfo.collider);
@@ -45,6 +44,8 @@ namespace PlatformerGame
         public void OnCollision(Collider collider)
         {
             NetworkPlayer player = collider.GetComponent<NetworkPlayer>();
+
+            //we dont want to shoot our player so we compare ActorNumber
             if (player && player.photonView.Owner.ActorNumber != Owner.ActorNumber)
             {
                 player.OnHitByBullet(this);

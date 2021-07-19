@@ -23,7 +23,7 @@ namespace PlatformerGame
         {
             if (player == null || animator == null || stats == null) return;
 
-            DecreaseJumpAvailibilty();
+            DecreaseJumpAvailibilty();//we want to decrease this whenever we jump that way we wont break the game
             if (CanJump() == false && sharedData.defaultJumpAmount > 1 && onDoubleJump != null)
             {
                 onDoubleJump.Invoke();

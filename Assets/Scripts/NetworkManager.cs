@@ -88,7 +88,6 @@ namespace PlatformerGame
                 localPlayerInstance = (Instantiate(playerPrefab, spawnPoints[PlayerNumber].transform.position, spawnPoints[PlayerNumber].transform.rotation)).GetComponent<NetworkPlayer>();
                 if (localPlayerInstance && cam)
                 {
-                    //localPlayerInstance.SetOwnership(PhotonNetwork.LocalPlayer);
                     PhotonView view = localPlayerInstance.GetComponent<PhotonView>();
                     PhotonNetwork.AllocateViewID(view);
 
@@ -111,7 +110,6 @@ namespace PlatformerGame
                 {
                     PhotonView view = remotePlayerInstance.GetComponent<PhotonView>();
                     view.ViewID = viewId;
-                    //remotePlayerInstance.SetOwnership(photonMessageInfo.Sender);
                     remotePlayerInstance.SetStats(new PlayerStat());
                 }
             }
@@ -150,6 +148,7 @@ namespace PlatformerGame
         {
             if (PhotonNetwork.IsMasterClient)
             {
+                //if we are the master then lets go
                 photonView.RPC("RPC_StartRace", RpcTarget.AllViaServer/*, PhotonNetwork.Time*/);
             }
         }
@@ -159,7 +158,6 @@ namespace PlatformerGame
         {
             if (localPlayerInstance)
             {
-        
                 localPlayerInstance.StartRunning();
             }
 
@@ -237,12 +235,6 @@ namespace PlatformerGame
 
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
-            //if (changedProps.ContainsKey(AsteroidsGame.PLAYER_LIVES))
-            //{
-            //    CheckEndOfGame();
-            //    return;
-            //}
-
             if (!PhotonNetwork.IsMasterClient)
             {
                 return;

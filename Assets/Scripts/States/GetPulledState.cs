@@ -48,6 +48,7 @@ namespace PlatformerGame
 
             timer += Time.deltaTime;
 
+            //if we are too close to our pulling target or the timer runs out, we return to fall state
             if (dir.magnitude <= 1 || timer >= timeLimit)
             {
                 return player.fallState;

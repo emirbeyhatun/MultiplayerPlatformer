@@ -17,6 +17,8 @@ namespace PlatformerGame
         private ItemBase[] items;
         private ItemBase currentItem;
         private ItemBase currentItemWithAnimation;
+
+        //Default items passed from the InventoryManager, we dont want to alter these, we want to clone them when  needed
         private List<ItemBase> itemData;
         private int inventoryCount = 0;
         private const int InventoryLimit = 3;
@@ -136,6 +138,7 @@ namespace PlatformerGame
         }
         public void SwitchTo(int inventoryID)
         {
+            //We dont allow inventory to switch if the currentItemWithAnimation is not null, because it could be still animating
             if (currentItemWithAnimation != null || inventoryID < 0 || inventoryID >= items.Length) return;
 
             ItemBase selectedItem = GetItem(inventoryID);
@@ -157,6 +160,7 @@ namespace PlatformerGame
 
                 UpdateButtonColors();
 
+                //This resets the UpperBody animation to idle
                 animator.ResetTrigger("IdleUpper");
             }
         }
@@ -220,6 +224,8 @@ namespace PlatformerGame
             {
                 if(currentItem.data.totalUsage > 0 && currentItemWithAnimation == null)
                 {
+                    //if we need to call the animationEvent then UseItem Should return itself
+                    //We dont allow inventory to switch if the currentItemWithAnimation is not null, because it could be still animating
                     currentItemWithAnimation = currentItem.UseItem(lag);
                     UpdateButtonUsages();
                 }
@@ -231,6 +237,7 @@ namespace PlatformerGame
 
                 if (isPlayerLocal && eventdata != null && eventdata.replicateItemUsage != null)
                 {
+                    //We replicate ItemUse so our player in remotes use its item
                     eventdata.replicateItemUsage.Invoke();
                 }
             }
@@ -263,6 +270,8 @@ namespace PlatformerGame
                     RemoveCurrentItem();
                 }
                 UpdateButtonUsages();
+
+                //After the event we nullify this variable so we can switch our item
                 currentItemWithAnimation = null;
             }
 

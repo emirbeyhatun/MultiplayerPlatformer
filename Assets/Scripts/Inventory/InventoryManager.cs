@@ -7,6 +7,8 @@ namespace PlatformerGame
     public class InventoryManager : MonoBehaviour
     {
         public static InventoryManager instance;
+
+        //Default item list, we dont want to alter these that's why we clone them on use
         public List<ItemBase> itemData;
 
         public ItemBase GetItemData(int itemID)

@@ -51,7 +51,10 @@ namespace PlatformerGame
         {
             return readyToBeRemoved;
         }
+
         public abstract ItemBase UseItem(float lag);
+
+        //Called when animation triggers
         public abstract void AnimationEvent();
         public abstract void SwitchToItem();
         public abstract void SwitchFromItem();

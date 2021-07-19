@@ -22,9 +22,6 @@ namespace PlatformerGame
             lastFramePosition = transform.position;
             if (target)
             {
-                //transform.position = Vector3.Lerp(transform.position, target.transform.position + distance, Time.deltaTime);
-                //transform.position = target.transform.position + distance;
-
                 transform.position = Vector3.SmoothDamp(transform.position, target.transform.position + distance, ref velocity, 0.5f);
             }
         }
